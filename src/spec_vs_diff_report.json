@@ -1,0 +1,47 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-14T04:38:36.868Z",
+  "summary": "The diff updates the SplashScreen logo <img> to use the requested classic STOP sign asset path, but it also introduces additional, unrequested UI changes (a new splash background image overlay) and does not show the required new static asset being added under frontend/public/assets/generated/.",
+  "missing_requirements": [
+    {
+      "id": "REQ-40",
+      "requirement": "Serve the STOP sign image as a newly generated static asset under `frontend/public/assets/generated/` so it loads successfully in production build (not routed through backend).",
+      "reason": "The SplashScreen references `/assets/generated/stop-sign-classic.dim_512x512.png`, but the diff shows no new file added under `frontend/public/assets/generated/` (no added files at all), so the required static asset itself is not evidenced.",
+      "evidence": [
+        "frontend/src/screens/SplashScreen.tsx",
+        "<file-diff>: Added: 0 files"
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "requirement": "Update ONLY the selected `<img>` element at the specified XPath; no other images/logos should be changed as part of this task.",
+      "reason": "The diff adds a new full-screen background image overlay using `backgroundImage: 'url(/assets/generated/splash-bg.dim_1920x1080.png)'`, which is an additional image-related change beyond the single selected `<img>` element.",
+      "evidence": [
+        "frontend/src/screens/SplashScreen.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Added a new splash screen background image overlay (`/assets/generated/splash-bg.dim_1920x1080.png`) and related layout/styling changes.",
+      "reason": "The BuildRequest only asked to replace the source of a single selected `<img>` with a classic STOP sign asset; it explicitly constrained the change to ONLY that element and warned against redesign/layout changes.",
+      "evidence": [
+        "frontend/src/screens/SplashScreen.tsx"
+      ]
+    },
+    {
+      "description": "References to numerous unrelated feature changes (monthly leaderboard route, gameplay/scoring/tribunal/ranking changes, PWA/footer changes, etc.) captured in `frontend-file-summaries.txt`.",
+      "reason": "These are not requested in REQ-40 and conflict with the request’s non-goals (e.g., do not implement gameplay/scoring fixes) and scope constraints. While this file is a summary, it is still modified and claims additional work beyond the request.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.68,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/screens/SplashScreen.tsx",
+    "project_state.json"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-update-only-the-selected-img-element-at-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-2-div-1-img-1-so-it-displays-a-classic-red-octagonal-stop-road-sign-symbol-option-1-by-changing-the-image-source-to-a-newly-generated-static-asset-under-frontend-public-assets-generated-do-not-route-through-the-backend",
+      "featureTitle": "Update ONLY the selected `<img>` element at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[2]/div[1]/img[1]` so it displays a classic red octagonal STOP road-sign symbol (option 1) by changing the image source to a newly generated static asset under `frontend/public/assets/generated/` (do not route through the backend).",
+      "files": [
+        "frontend/src/screens/SplashScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "stripe@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-40"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

@@ -1,0 +1,490 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 17,
+  "summary": "Build a web/PWA version of “STOP Venezolano!” using React + TypeScript frontend with Motoko backend (Internet Computer) and Internet Identity auth, including full game flow, online play via matchmaking and invite codes, Spanish-only UI text, social invite/share buttons (WhatsApp/Telegram/Facebook via native share links), moderation/admin tooling, Stripe-based web monetization, correct per-round scoring when STOP is pressed, and post-match + monthly ranking experiences (including a Top 1 monthly rewards concept).",
+  "architectural_notes": [
+    "Adapted scope: implement as web/PWA using React + TypeScript (frontend) and Motoko on Internet Computer (backend).",
+    "Authentication via Internet Identity (Firebase Auth not used).",
+    "Realtime features implemented using polling (no WebSockets).",
+    "Monetization via Stripe web payments (no AdMob or native IAP).",
+    "Social invites will use Web Share API and/or share URLs (no official WhatsApp/Telegram/Facebook APIs), including room code in shared message/link.",
+    "Add per-round letter selection via a roulette/spinner using the Spanish alphabet (incl. Ñ) with no repeats across the match.",
+    "STOP button should trigger local audio playback of a voice line when pressed (define whether TTS or a bundled audio asset).",
+    "Support an in-game profile/registration step (e.g., username) and store it for visibility in admin/moderation tools.",
+    "Automated jury/validation will be dictionary/heuristic-based (Venezuelan slang focus) and will set invalid entries to null; replaces player voting tribunal flow.",
+    "Use a classic red octagonal STOP sign symbol as a UI image/icon where requested (not the custom STOP Venezolano logo)."
+  ],
+  "known_issues": [
+    "Platform build attempts failed with generic error ('AI couldn't implement that'); may require breaking work into smaller steps.",
+    "Roulette/spinner does not animate/spin at round start (should spin and stop on random non-repeating letter).",
+    "Pressing STOP does not add points / scoreboard is not updating automatically.",
+    "Final Ranking screen score also stays at 0/1000 (does not reflect computed points); user expects real-time updates during match and correct totals at end."
+  ],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Classic red octagonal STOP road sign symbol, centered on transparent background (stop-sign-classic.dim_512x512.png)",
+  "existing_features": [
+    {
+      "id": "feature-implement-internet-identity-authentication-and-a-signed-in-user-session-that-is-required-to-play-anonymous-users-can-only-view-the-splash-main-menu",
+      "title": "Implement Internet Identity authentication and a signed-in user session that is required to play (anonymous users can only view the Splash/Main Menu).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-the-complete-screen-flow-and-navigation-splash-main-menu-lobby-game-validation-tribunal-ranking-with-consistent-state-transitions-and-the-ability-to-return-to-main-menu-safely-at-any-time",
+      "title": "Create the complete screen flow and navigation: Splash → Main Menu → Lobby → Game → Validation Tribunal → Ranking, with consistent state transitions and the ability to return to Main Menu safely at any time.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-design-and-apply-a-coherent-visual-theme-for-the-entire-app-colors-typography-spacing-and-component-style-appropriate-for-a-playful-venezuelan-party-game-keep-all-user-facing-text-in-english-with-venezuelan-flavored-tone-where-appropriate",
+      "title": "Design and apply a coherent visual theme for the entire app (colors, typography, spacing, and component style) appropriate for a playful Venezuelan party game; keep all user-facing text in English (with Venezuelan-flavored tone where appropriate).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-game-mode-cerca-near-private-rooms-that-can-be-created-and-joined-by-a-room-code-pin-with-lobby-controls-host-starts-game-players-list-ready-status-and-persistence-of-room-membership-during-the-session",
+      "title": "Implement game mode “Cerca” (near): private rooms that can be created and joined by a room code/PIN, with lobby controls (host starts game, players list, ready status) and persistence of room membership during the session.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-game-mode-lejos-far-online-matchmaking-that-places-signed-in-users-into-a-match-and-moves-them-into-a-shared-lobby-and-game-session-real-time-updates-must-be-implemented-via-polling-no-websockets",
+      "title": "Implement game mode “Lejos” (far): online matchmaking that places signed-in users into a match and moves them into a shared lobby and game session; real-time updates must be implemented via polling (no WebSockets).",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-core-stop-gameplay-loop-round-setup-randomized-dynamic-category-pool-timer-a-prominent-stop-button-word-entry-per-category-submission-locking-and-scoring-rules-suitable-for-multiplayer",
+      "title": "Implement the core STOP gameplay loop: round setup, randomized/dynamic category pool, timer, a prominent “STOP” button, word entry per category, submission locking, and scoring rules suitable for multiplayer.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-juez-criollo-validation-tribunal-after-each-round-show-doubtful-entries-and-allow-players-to-vote-approve-reject-use-majority-voting-to-finalize-accepted-words-and-update-scores-accordingly",
+      "title": "Implement the “Juez Criollo” Validation Tribunal: after each round, show doubtful entries and allow players to vote approve/reject; use majority voting to finalize accepted words and update scores accordingly.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-admin-panel-gated-by-an-allowlist-of-principals-hardcoded-initially-to-manage-an-official-dictionary-approve-ban-words-ban-users-and-view-basic-metrics-users-matches-purchases",
+      "title": "Add an admin panel gated by an allowlist of principals (hardcoded initially) to: manage an official dictionary (approve/ban words), ban users, and view basic metrics (users, matches, purchases).",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-stripe-monetization-for-web-purchases-of-premium-category-packs-avatar-skins-and-an-ad-removal-equivalent-store-entitlements-per-user-principal-and-reflect-owned-items-in-the-ui",
+      "title": "Integrate Stripe monetization for web purchases of premium category packs, avatar skins, and an ad-removal equivalent; store entitlements per user principal and reflect owned items in the UI.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-polling-based-synchronization-for-game-state-updates-lobby-status-timer-round-state-tribunal-votes-rankings-with-clear-loading-error-states-and-retry-behavior",
+      "title": "Implement polling-based synchronization for game state updates (lobby status, timer/round state, tribunal votes, rankings) with clear loading/error states and retry behavior.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-the-ranking-screen-and-post-game-summary-showing-per-player-scores-round-breakdown-and-a-way-to-start-a-new-match-or-return-to-main-menu",
+      "title": "Create the Ranking screen and post-game summary showing per-player scores, round breakdown, and a way to start a new match or return to Main Menu.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-pwa-ready-setup-manifest-icons-installability-and-ensure-the-ui-is-mobile-first-responsive-for-the-full-flow-splash-through-ranking",
+      "title": "Add a PWA-ready setup (manifest, icons, installability) and ensure the UI is mobile-first responsive for the full flow (Splash through Ranking).",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-generated-static-image-assets-logo-splash-hero-background-and-a-small-set-of-category-icons-and-render-them-in-the-ui-without-routing-images-through-the-backend",
+      "title": "Add generated static image assets (logo, splash/hero background, and a small set of category icons) and render them in the UI without routing images through the backend.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-translate-the-entire-frontend-ui-to-spanish-venezuelan-tone-by-replacing-all-english-copy-in-the-centralized-copy-module-and-removing-any-remaining-hardcoded-english-strings-across-screens-dialogs-toasts-placeholders-and-empty-loading-states",
+      "title": "Translate the entire frontend UI to Spanish (Venezuelan tone) by replacing all English copy in the centralized copy module and removing any remaining hardcoded English strings across screens, dialogs, toasts, placeholders, and empty/loading states.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-invite-friends-sharing-feature-that-supports-whatsapp-telegram-and-facebook-via-web-share-when-available-and-url-based-share-links-no-third-party-apis-including-the-room-code-and-a-join-link-in-the-shared-message",
+      "title": "Add an 'Invite friends' sharing feature that supports WhatsApp, Telegram, and Facebook via Web Share (when available) and URL-based share links (no third-party APIs), including the room code and a join link in the shared message.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-gameplay-rules-to-support-a-match-consisting-of-10-letters-10-rounds-and-scoring-totaling-1000-points-maximum-100-points-for-a-valid-unique-word-50-points-for-repeated-words-and-0-points-for-empty-incomplete-answers-ensure-these-rules-are-enforced-consistently-end-to-end",
+      "title": "Update gameplay rules to support a match consisting of 10 letters (10 rounds) and scoring totaling 1000 points maximum: 100 points for a valid unique word, 50 points for repeated words, and 0 points for empty/incomplete answers; ensure these rules are enforced consistently end-to-end.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-existing-generated-logo-asset-to-be-a-venezuelan-stop-style-logo-incorporating-the-venezuelan-flag-and-update-the-frontend-to-use-the-updated-logo-asset-wherever-the-logo-is-rendered",
+      "title": "Update the existing generated logo asset to be a Venezuelan STOP-style logo incorporating the Venezuelan flag, and update the frontend to use the updated logo asset wherever the logo is rendered.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-game-screen-to-remove-mocked-round-letter-values-and-instead-render-live-round-state-from-the-backend-including-a-letter-roulette-spinner-that-auto-spins-at-the-start-of-each-round-and-then-stops-on-the-backend-selected-letter",
+      "title": "Update the Game screen to remove mocked round/letter values and instead render live round state from the backend, including a letter roulette/spinner that auto-spins at the start of each round and then stops on the backend-selected letter.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-prominent-stop-button-in-the-game-screen-that-when-pressed-1-plays-an-audible-voice-line-that-says-exactly-stop-and-2-calls-the-backend-to-stop-the-round",
+      "title": "Add a prominent STOP button in the Game screen that, when pressed, (1) plays an audible voice line that says exactly \"STOP!\" and (2) calls the backend to stop the round.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-react-query-hooks-in-frontend-src-hooks-usequeries-ts-to-support-querying-round-state-and-mutating-round-start-stop-actions-consistent-with-existing-polling-based-synchronization-patterns",
+      "title": "Extend React Query hooks in `frontend/src/hooks/useQueries.ts` to support querying round state and mutating round start/stop actions, consistent with existing polling-based synchronization patterns.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-letter-roulette-animation-so-it-visibly-spins-at-the-start-of-each-round-and-reliably-stops-on-the-backend-selected-letter-for-that-round-including-correct-handling-across-polling-refreshes-and-re-renders",
+      "title": "Fix the letter roulette animation so it visibly spins at the start of each round and reliably stops on the backend-selected letter for that round (including correct handling across polling refreshes and re-renders).",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-in-game-scoreboard-table-that-shows-each-player-and-their-total-points-and-ensure-scores-update-automatically-after-each-round-including-when-stop-is-pressed-replace-any-temporary-mocked-score-values-with-live-values",
+      "title": "Implement an in-game scoreboard/table that shows each player and their total points, and ensure scores update automatically after each round (including when STOP is pressed). Replace any temporary/mocked score values with live values.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-current-player-voting-tribunal-flow-with-a-fully-automated-jury-that-validates-submitted-words-and-nulls-invalidates-answers-that-are-not-valid-per-the-app-s-venezuelan-slang-dictionary-rules-update-the-end-of-round-flow-so-players-can-review-the-automated-decisions-before-proceeding-to-rankings",
+      "title": "Replace the current player-voting tribunal flow with a fully automated jury that validates submitted words and nulls (invalidates) answers that are not valid per the app’s Venezuelan-slang/dictionary rules; update the end-of-round flow so players can review the automated decisions before proceeding to rankings.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enforce-a-hard-maximum-of-8-players-per-match-room-in-both-cerca-join-by-code-and-lejos-matchmaking-flows-prevent-joining-starting-when-the-limit-would-be-exceeded-and-surface-a-clear-error-message-to-the-user",
+      "title": "Enforce a hard maximum of 8 players per match/room in both “Cerca” (join by code) and “Lejos” (matchmaking) flows; prevent joining/starting when the limit would be exceeded and surface a clear error message to the user.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-visible-download-app-entry-point-in-the-ui-that-triggers-the-pwa-install-prompt-when-available-and-otherwise-shows-simple-install-instructions-appropriate-for-unsupported-browsers",
+      "title": "Add a visible \"Download app\" entry point in the UI that triggers the PWA install prompt when available, and otherwise shows simple install instructions appropriate for unsupported browsers.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-and-fix-the-pwa-install-experience-so-users-can-install-the-app-from-the-website-and-get-a-standalone-app-icon-on-their-phone-home-screen-android-via-the-browser-install-prompt-when-available-ios-via-manual-instructions-when-the-prompt-is-unavailable",
+      "title": "Verify and fix the PWA install experience so users can install the app from the website and get a standalone app icon on their phone home screen (Android via the browser install prompt when available; iOS via manual instructions when the prompt is unavailable).",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-audit-and-correct-the-pwa-metadata-assets-required-for-installability-and-correct-home-screen-icon-rendering-ensuring-the-manifest-and-html-metadata-are-consistent-and-that-all-referenced-icons-are-present-and-load-successfully",
+      "title": "Audit and correct the PWA metadata/assets required for installability and correct home-screen icon rendering, ensuring the manifest and HTML metadata are consistent and that all referenced icons are present and load successfully.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-frontend-scoring-persistence-so-that-pressing-stop-results-in-per-round-points-being-stored-and-the-in-game-scoreboard-total-updates-automatically-for-all-players-even-when-a-round-produces-zero-valid-entries",
+      "title": "Fix the frontend scoring persistence so that pressing STOP results in per-round points being stored and the in-game scoreboard total updates automatically for all players, even when a round produces zero valid entries.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-at-the-end-of-a-10-round-match-show-the-exact-message-felicidades-quedaste-top-1-only-to-the-player-who-finished-in-1st-place-on-the-ranking-screen",
+      "title": "At the end of a 10-round match, show the exact message \"felicidades quedaste top 1\" only to the player who finished in 1st place on the Ranking screen.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-monthly-leaderboard-ui-that-displays-the-current-month-s-top-list-highlights-the-current-user-and-indicates-that-the-1-spot-is-prize-eligible-with-navigation-entry-points-from-the-main-menu-and-or-the-ranking-screen",
+      "title": "Add a Monthly Leaderboard UI that displays the current month's Top list, highlights the current user, and indicates that the #1 spot is prize-eligible, with navigation entry points from the Main Menu and/or the Ranking screen.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-expose-match-scoring-data-in-the-backend-api-used-by-the-frontend-polling-loop-so-the-frontend-can-render-live-totals-without-relying-on-browser-sessionstorage-update-the-candid-types-accordingly-and-regenerate-frontend-bindings-as-needed",
+      "title": "Expose match scoring data in the backend API used by the frontend polling loop, so the frontend can render live totals without relying on browser sessionStorage. Update the Candid/types accordingly and regenerate frontend bindings as needed.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-game-screen-score-display-x-of-1000-pts-and-the-in-game-scoreboard-table-to-use-backend-provided-scores-polled-so-points-update-in-near-real-time-for-all-players-after-stop-round-end-events",
+      "title": "Update the Game screen score display (“X of 1000 pts”) and the in-game scoreboard table to use backend-provided scores (polled) so points update in near real time for all players after STOP/round-end events.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-ranking-screen-to-render-final-scores-from-backend-authoritative-match-totals-polled-or-fetched-so-the-end-of-match-ranking-does-not-remain-at-0-1000",
+      "title": "Update the Ranking screen to render final scores from backend-authoritative match totals (polled or fetched) so the end-of-match ranking does not remain at 0/1000.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-only-the-selected-img-element-at-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-2-div-1-img-1-so-it-displays-a-classic-red-octagonal-stop-road-sign-symbol-option-1-by-changing-the-image-source-to-a-newly-generated-static-asset-under-frontend-public-assets-generated-do-not-route-through-the-backend",
+      "title": "Update ONLY the selected `<img>` element at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[2]/div[1]/img[1]` so it displays a classic red octagonal STOP road-sign symbol (option 1) by changing the image source to a newly generated static asset under `frontend/public/assets/generated/` (do not route through the backend).",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Project setup: React + TypeScript web/PWA frontend with Motoko backend and Internet Identity authentication",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Implement full screen flow: Splash → Main Menu → Lobby → Game → Validation Tribunal → Ranking",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Game mode 'Cerca': private rooms joinable by code/PIN (and/or QR)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Game mode 'Lejos': online matchmaking with voice chat (adapted to web constraints)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Real-time gameplay state updates implemented via polling (no WebSockets)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Core gameplay mechanics: 'STOP' big button with haptics/audio, rounds, scoring, timer, and dynamic categories pool",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Admin web panel to manage official dictionary (approve/ban words), ban users, and view user/revenue metrics",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Web monetization: Stripe payments for premium category packs, avatar skins, and ad-removal equivalent",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Spanish localization with Venezuelan slang strings for notifications/errors and themed UI flavor text",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Implement backend data models and APIs in a single Motoko actor for: users, rooms/matches, matchmaking queue, round state, submissions, votes, dictionary entries, bans, purchases/entitlements; expose query/update methods for the React app.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Spanish-only UI: translate/replace all menus, notifications, and in-game text from English to Spanish (Venezuelan tone)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add 'Invite friends' sharing: buttons for WhatsApp/Telegram/Facebook using Web Share / share links (text + URL + room code)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Gameplay rules update: 10 letters per match/round-set; scoring to total 1000 points (100 per valid word, 50 for repeated, 0 for empty/incomplete)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Update/replace logo asset: STOP sign themed logo incorporating the Venezuelan flag",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "In-game registration/profile: require players to register/set an in-game username within the game flow, and surface registered player info in the moderator/admin panel",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Add voice audio when pressing the in-game STOP button (plays a 'STOP' voice line on press)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Implement a per-round letter roulette/spinner (Spanish alphabet incl. Ñ) that auto-spins/stops at round start; selected letters cannot repeat across the 10-round match",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Add backend support for a 10-round match where each round automatically selects a random starting letter from the Spanish alphabet including Ñ, and the selected letter cannot be reused in any of the remaining rounds in that match.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Expose backend APIs needed by the frontend to (a) start a round (auto-selecting the next non-repeating letter), (b) stop the current round, and (c) query the current round state (round number, total rounds=10, current letter, and list of used letters).",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Replace 'Juez Criollo' player-voting tribunal with an automated jury that validates words (focused on Venezuelan slang) and nulls invalid answers",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Add an in-game scoreboard/table showing each user and points that auto-update per round; ensure STOP press triggers scoring correctly",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Enforce max 8 players per match (room/matchmaking)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Add a visible 'Descargar app' button to trigger PWA install prompt / show install instructions",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Post-match message: after finishing the 10 rounds, show \"felicidades quedaste top 1\" only to the player who actually finishes in 1st place",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Add a monthly leaderboard ('top mensual') and define a mechanism to award prizes to the monthly Top 1",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Fix the backend round lifecycle so that each started round has a corresponding active round record and validation results are correctly scoped per round, enabling the frontend to retrieve validation results after STOP and compute scores.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Implement backend support for a monthly leaderboard that accumulates players’ match scores by month (e.g., YYYY-MM) and exposes a query API to retrieve the current month's Top list, including the current Top 1 for rewards eligibility.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Implement authoritative server-side scoring for each round and the match total so that all players see the same non-zero points (instead of everyone staying at 0/1000). The backend must compute and store per-player points when a round ends (STOP) and make these points queryable.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "UI: Add/apply a classic red octagonal STOP road-sign symbol (option 1) in the specified image/location in the app UI",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "STOP Venezolano!",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

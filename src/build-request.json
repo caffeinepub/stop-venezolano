@@ -1,0 +1,55 @@
+{
+  "kind": "build_request",
+  "title": "Replace selected UI image with classic STOP road sign symbol",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-40",
+      "text": "Update ONLY the selected `<img>` element at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[2]/div[1]/img[1]` so it displays a classic red octagonal STOP road-sign symbol (option 1) by changing the image source to a newly generated static asset under `frontend/public/assets/generated/` (do not route through the backend).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Quiero que este el simbolo de stop",
+          "Si la opcion 1",
+          "Aplicalo",
+          "/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[2]/div[1]/img[1]"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The `<img>` at the provided XPath renders the classic red octagonal STOP sign symbol.",
+        "No other `<img>` elements or logos elsewhere in the app are changed as part of this task.",
+        "The STOP sign image is served as a static asset from `frontend/public/assets/generated/` and loads successfully in production build.",
+        "The existing `alt` text behavior for the selected `<img>` is preserved (no new user-facing copy is introduced)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Apply the change ONLY to the single selected element identified by XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[2]/div[1]/img[1]`.",
+    "Frontend immutable paths must not be edited: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, `frontend/src/components/ui`.",
+    "Do not add any backend changes for this request."
+  ],
+  "nonGoals": [
+    "Do not redesign the overall app theme or layout.",
+    "Do not change other branding assets (e.g., the existing STOP Venezolano logo) outside the selected `<img>`.",
+    "Do not implement gameplay/scoring fixes as part of this request."
+  ],
+  "imageRequirements": {
+    "required": [
+      "Classic red octagonal STOP road sign symbol, centered on transparent background (stop-sign-classic.dim_512x512.png)"
+    ],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

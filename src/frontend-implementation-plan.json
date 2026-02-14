@@ -1,0 +1,29 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Swap splash screen logo image to classic STOP sign static asset",
+  "requirements": [
+    {
+      "id": "REQ-40",
+      "summary": "Change the single selected SplashScreen <img> (per provided XPath) to use a newly generated classic STOP sign asset served from frontend/public/assets/generated/ while preserving existing alt text behavior.",
+      "acceptanceCriteria": [
+        "The `<img>` at the provided XPath renders the classic red octagonal STOP sign symbol.",
+        "No other `<img>` elements or logos elsewhere in the app are changed as part of this task.",
+        "The STOP sign image is served as a static asset from `frontend/public/assets/generated/` and loads successfully in production build.",
+        "The existing `alt` text behavior for the selected `<img>` is preserved (no new user-facing copy is introduced)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/stop-sign-classic.dim_512x512.png",
+          "operation": "create",
+          "description": "Add the generated image asset: Classic red octagonal STOP road sign symbol, centered on transparent background (stop-sign-classic.dim_512x512.png). Ensure it is placed exactly at `frontend/public/assets/generated/stop-sign-classic.dim_512x512.png` so it is served as a static frontend asset (no backend routing)."
+        },
+        {
+          "path": "frontend/src/screens/SplashScreen.tsx",
+          "operation": "modify",
+          "description": "Update ONLY the selected `<img>` element that corresponds to XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[2]/div[1]/img[1]` by changing its `src` from `stop-venezolano-logo-v2.dim_512x512.png` to `stop-sign-classic.dim_512x512.png` (served from `frontend/public/assets/generated/`). Preserve the existing `alt` prop and do not modify any other images in this file or elsewhere."
+        }
+      ]
+    }
+  ]
+}
